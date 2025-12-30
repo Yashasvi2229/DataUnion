@@ -1,11 +1,35 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { Vortex } from '@/components/ui/vortex';
 import { CometCard } from '@/components/ui/comet-card';
 import { BackgroundGradient } from '@/components/ui/background-gradient';
 
 export default function Home() {
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show back to top button when scrolled down 300px
+      setShowBackToTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Grid Pattern Background */}
@@ -42,14 +66,40 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <Link
-            href="/walkthrough"
-            className="px-6 py-2.5 rounded-md bg-white text-black text-sm font-semibold hover:bg-white/90 transition-all border border-white/10"
-          >
-            DEMO
-          </Link>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => scrollToSection('features')}
+              className="px-6 py-2.5 rounded-md bg-transparent text-white text-sm font-semibold hover:bg-white/5 transition-all border border-white/10"
+            >
+              FEATURES
+            </button>
+            <button
+              onClick={() => scrollToSection('working')}
+              className="px-6 py-2.5 rounded-md bg-transparent text-white text-sm font-semibold hover:bg-white/5 transition-all border border-white/10"
+            >
+              WORKING
+            </button>
+            <Link
+              href="/walkthrough"
+              className="px-6 py-2.5 rounded-md bg-white text-black text-sm font-semibold hover:bg-white/90 transition-all border border-white/10"
+            >
+              DEMO
+            </Link>
+          </div>
         </div>
       </header>
+
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-8 right-8 z-50 p-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 ${showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16 pointer-events-none'
+          }`}
+        aria-label="Back to top"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </button>
 
       {/* Hero Section with Vortex */}
       <section className="relative min-h-screen max-w-full mx-auto overflow-hidden flex items-center">
@@ -153,7 +203,7 @@ export default function Home() {
       <main className="relative max-w-7xl mx-auto px-8 pb-32 pt-20">
 
         {/* Key Features */}
-        <section className="mb-40">
+        <section id="features" className="mb-40">
           <div className="mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
               CORE FEATURES
@@ -201,7 +251,7 @@ export default function Home() {
         </section>
 
         {/* How It Works - Horizontal Scroll */}
-        <section className="mb-40">
+        <section id="working" className="mb-40">
           <div className="mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
               HOW IT WORKS
