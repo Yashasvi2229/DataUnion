@@ -10,10 +10,10 @@ In Round 1, we built a **functional prototype** demonstrating the core concept o
 
 1. **Authentication & Security** - Move from prototype to production-grade auth
 2. **Advanced Data Quality** - ML-powered validation and scoring
-3. **Blockchain Integration** - Immutable audit trails for maximum transparency
-4. **Real Payments** - Actual financial transactions for licenses and payouts
-5. **Scale & Performance** - Handle thousands of concurrent users
-6. **Mobile Experience** - Native apps for iOS and Android
+3. **Immutable Audit Trails** - Cryptographically verifiable logs for transparency
+4. **Advanced Financial Simulation** - Realistic economic modeling and forecasting
+5. **Scalability Readiness** - Architecture prepared for future growth
+6. **Community Feedback** - Direct loops for user engagement
 
 ---
 
@@ -70,105 +70,66 @@ Real user accounts enable persistent data, personalization, and secure transacti
 
 ---
 
-### 4. Blockchain Integration
-
-**Purpose:** Immutable, verifiable audit trails
-
-**Implementation:**
-- **Smart contracts** on Polygon (low gas fees)
-- **On-chain events** for:
-  - Dataset creation
-  - License purchases
-  - Payout distributions
-  - Consent changes
-- **IPFS storage** for large datasets
-- **Merkle trees** for efficient verification
-
-**Benefits:**
-- Tamper-proof transaction history
-- Third-party audits without trusted intermediaries
-- Cryptographic proof of consent
-- Interoperability with Web3 ecosystems
+### 4. Immutable Audit Trails
+ 
+ **Purpose:** Verifiable, tamper-evident logs without blockchain overhead
+ 
+ **Implementation:**
+ - **Merkle Trees** to hash transaction batches
+ - **Publicly verifiable** root hashes published daily
+ - **Append-only logs** in Supabase (WORM storage)
+ - **Cryptographic signatures** for every consent record
+ 
+ **Benefits:**
+ - Tamper-proof transaction history
+ - Third-party audits
+ - Cryptographic proof of consent
+ - High performance (no gas fees or latency)
 
 ---
 
-### 5. Real Payment Processing
-
-**Current:** Simulated transactions  
-**Round 2:** Actual money movement
-
-**Payment Gateway:**
-- **Stripe** for credit card processing
-- **PayPal** for global reach
-- **Crypto payments** (USDC, ETH) for Web3 users
-
-**Features:**
-- **Escrow system** for license purchases
-- **Automated payout distribution** based on contribution shares
-- **Multi-currency support**
-- **Tax documentation** (1099 forms for US contributors)
-- **Dispute resolution** workflows
-
-**Compliance:**
-- PCI DSS for card data
-- KYC/AML for high-value transactions
-- GDPR-compliant payment records
+### 5. Advanced Financial Simulation
+ 
+ **Current:** Basic static values
+ **Round 2:** Dynamic economic engine
+ 
+ **Features:**
+ - **Market-driven pricing** based on demand/supply
+ - **Dynamic payout calculation** (90/10 split logic)
+ - **Projected earnings** forecasting for contributors
+ - **ROI calculator** for companies
+ 
+ **Why Simulation?**
+ - Focus on **economic logic** without regulatory overhead
+ - Allows testing **different pricing models** safely
+ - Demonstrates **fair value distribution** mechanics
 
 ---
 
-### 6. Scalability & Performance
-
-**Architecture Upgrades:**
-
-#### Microservices Migration
-- **API Gateway** (Kong or AWS API Gateway)
-- **Contributor Service** (user management)
-- **Company Service** (licensing, marketplace)
-- **Quality Engine Service** (ML validation)
-- **Payment Service** (financial transactions)
-- **Notification Service** (emails, SMS, push)
-
-#### Database Optimization
-- **Read replicas** for analytics queries
-- **Connection pooling** with PgBouncer
-- **Partitioning** for large tables (contributions, usage logs)
-- **Materialized views** for dashboard aggregations
-
-#### Caching Strategy
-- **Redis** for:
-  - Session storage-  Quality scores
-  - Dataset metadata
-  - Leaderboards
-- **CDN** (Cloudflare) for static assets
-
-#### Load Balancing
-- **Horizontal scaling** with Kubernetes
-- **Auto-scaling** based on CPU/memory metrics
-- **Geographic distribution** (multi-region deployment)
-
-**Performance Targets:**
-- Page load: < 1.5s (99th percentile)
-- API response: < 200ms (median)
-- Support: 10,000+ concurrent users
-- Uptime: 99.9% SLA
+### 6. Scalability Readiness
+ 
+ **Strategy:** Build for today, plan for tomorrow.
+ 
+ **Current Implementation:**
+ - **Next.js Server Actions** for efficient backend logic
+ - **Supabase Edge Functions** for low-latency processing
+ - **Database Indexing** on key columns (contributor_id, dataset_id)
+ 
+ **Future-Proofing:**
+ - **Modular Codebase:** Separation of concerns allows easy migration to microservices later.
+ - **Stateless Auth:** JWT-based auth scales horizontally without sticky sessions.
+ - **Asset Optimization:** Images served via CDN with automatic resizing.
 
 ---
 
-### 7. Mobile Applications
-
-**Platforms:** iOS (Swift/SwiftUI), Android (Kotlin/Jetpack Compose)
-
-**Features:**
-- **Quick contributions** via camera (upload photos, videos)
-- **Push notifications** for payout events
-- **Biometric auth** (Face ID, fingerprint)
-- **Offline mode** (sync when connected)
-- **QR code scanning** for rapid dataset discovery
-
-**Why Mobile?**
-- Contributors can share data on-the-go
-- Lower barrier to entry (no desktop required)
-- Richer data types (location, sensors)
+### 7. Community Feedback Loop
+ 
+ **Purpose:** Direct channel for user-developer interaction.
+ 
+ **Features:**
+ - **In-App Feedback Widget:** Report bugs or suggest features directly.
+ - **Public Roadmap Voting:** Users vote on what we build next.
+ - **Discord Integration:** Real-time community support.
 
 ---
 
@@ -194,181 +155,104 @@ Real user accounts enable persistent data, personalization, and secure transacti
 
 ---
 
-### 9. API Marketplace & Integrations
-
-**Developer APIs:**
-- RESTful API for programmatic access
-- **GraphQL** for flexible data queries
-- **Webhooks** for real-time events
-- **SDKs** (Python, JavaScript, R)
-
-**Third-Party Integrations:**
-- **Kaggle** - import datasets
-- **Hugging Face** - connect to model training
-- **AWS SageMaker** - direct data pipeline
-- **Google BigQuery** - analytics integration
+### 9. API & Integrations (Future Scope)
+ 
+ **Planned:**
+ - **Developer API** for programmatic data access
+ - **Hugging Face Integration** for direct model training
 
 ---
 
 ### 10. Governance & Community Features
 
-**Contributor Union:**
-- **Voting on platform policies** (payout percentages, quality standards)
-- **Dispute resolution** via community arbitration
-- **Feature requests** and prioritization
-
-**Transparency Reports:**
-- Public dashboards showing:
-  - Total payouts distributed
-  - Number of active contributors
-  - Top datasets by license volume
-  - Platform fees and sustainability
+**Community Features:**
+ - **Feedback Board:** Public feature requests
+ - **Bug Bounty:** Rewards for finding issues
 
 ---
 
 ## 🏗️ Technical Improvements
 
-### System Architecture Evolution
-
-**Round 1:**  
-Monolithic Next.js app with Supabase backend
-
-**Round 2:**  
-Microservices architecture with event-driven communication
-
-```
-┌─────────────────────────────────────────┐
-│         API Gateway (Kong)              │
-└────────────┬────────────────────────────┘
-             │
-    ┌────────┴────────┐
-    │                 │
-┌───▼───┐      ┌──────▼──────┐
-│ Auth  │      │  GraphQL    │
-│ Service│      │  Gateway    │
-└───┬───┘      └──────┬──────┘
-    │                 │
-    └────────┬────────┘
-             │
-    ┌────────┴─────────────────────────┐
-    │                                  │
-┌───▼────────┐  ┌──────────┐  ┌───────▼─────┐
-│Contributor │  │  Quality │  │   Payment   │
-│  Service   │  │  Engine  │  │   Service   │
-└────┬───────┘  └────┬─────┘  └──────┬──────┘
-     │               │                │
-     └───────────────┼────────────────┘
-                     │
-            ┌────────▼─────────┐
-            │  Event Bus       │
-            │  (RabbitMQ)      │
-            └────────┬─────────┘
-                     │
-            ┌────────▼─────────┐
-            │  PostgreSQL      │
-            │  (Multi-tenant)  │
-            └──────────────────┘
-```
-
-### Infrastructure as Code
-- **Terraform** for cloud resource provisioning
-- **Docker** for containerization
-- **Kubernetes** for orchestration
-- **CI/CD** with GitHub Actions
+### System Architecture
+ 
+ **Round 2 Strategy:**
+ Optimized Monolith (Next.js) + Serverless Functions (Supabase)
+ 
+ ```
+ ┌─────────────────────────────────────────┐
+ │            Next.js App Router           │
+ │       (Server Components + API)         │
+ └────────────────────┬────────────────────┘
+                      │
+           ┌──────────▼──────────┐
+           │   Supabase Client   │
+           └──────────┬──────────┘
+                      │
+      ┌───────────────┼───────────────┐
+      │               │               │
+ ┌────▼─────┐   ┌─────▼─────┐   ┌─────▼─────┐
+ │   Auth   │   │ Database  │   │ Storage   │
+ │ (GoTrue) │   │ (Postgres)│   │ (Buckets) │
+ └──────────┘   └─────┬─────┘   └───────────┘
+                      │
+             ┌────────▼────────┐
+             │  Edge Functions │
+             │  (ML Scoring)   │
+             └─────────────────┘
+ ```
+ 
+ ### Infrastructure
+ - **Vercel** for frontend/backend hosting
+ - **Supabase** for managed database & auth
+ - **GitHub Actions** for automated testing
 
 ---
 
-## 🔒 Security Enhancements
+## 🔒 Security & Privacy
 
-1. **Data Encryption:**
-   - At rest: AES-256 for sensitive fields
-   - In transit: TLS 1.3 for all connections
-   - End-to-end encryption for contributor-company messaging
+1. **Database Security:**
+   - **Row-Level Security (RLS):** Strict policies ensuring users only access their own data.
+   - **Supabase Auth:** Secure, token-based session management.
 
-2. **Access Controls:**
-   - Row-level security (RLS) in Supabase
-   - API rate limiting (1000 req/hour per user)
-   - IP allowlisting for admin operations
+2. **Standard Encryption:**
+   - **In-Transit:** All API traffic secured via TLS/SSL (HTTPS).
+   - **At-Rest:** Database storage automatically encrypted by Supabase.
 
-3. **Auditing:**
-   - Log all data access events
-   - Regular security audits (quarterly)
-   - Penetration testing before launch
-
-4. **Compliance:**
-   - GDPR compliance tool (data export, deletion)
-   - SOC 2 Type II certification path
-   - Regular privacy impact assessments
+3. **GDPR Compliance:**
+   - **Right to Erasure:** "Delete Account" button to permanently wipe data.
+   - **Data Portability:** "Export Data" feature for contributors.
+   - **Consent Tracking:** Granular logs of what was agreed to.
 
 ---
 
-## 📊 Success Metrics for Round 2
 
-### User Growth
-- **1,000+** active contributors
-- **50+** registered companies
-- **10,000+** data contributions
+## 💰 Business Model
 
-### Engagement
-- **Daily active users:** 20%+ of registered base
-- **Repeat contributions:** 60%+ contributors submit multiple times
-- **License conversion:** 30%+ of browsing companies make a purchase
+**Core Philosophy:** We only make money when Contributors make money.
 
-### Platform Health
-- **Average quality score:** > 75/100
-- **Payout response time:** < 24 hours after license purchase
-- **Dispute rate:** < 2% of transactions
+**1. Revenue Streams:**
+- **Platform Fee (10%):** We take a flat 10% cut on every dataset license sold.
+- **Enterprise API (Future):** Monthly subscription for high-volume, programmatic access to the data stream.
 
-### Technical
-- **API uptime:** 99.9%
-- **Page load time:** < 1.5s (95th percentile)
-- **Zero critical security vulnerabilities**
+**2. Cost Structure (Lean & Scalable):**
+- **Infrastructure:** Serverless architecture (Vercel/Supabase) means near-zero fixed costs. We pay only for usage.
+- **Storage:** Cold storage for older datasets keeps costs low.
+- **AI Processing:** Quality scoring is the main cost driver, optimized via batch processing.
 
----
+**3. Growth Strategy:**
+- **Supply Side:** Target niche communities (e.g., "Coding datasets", "Medical text") where high-quality human data is scarce.
+- **Demand Side:** Partner with AI startups needing "Clean, Ethically Sourced" data for fine-tuning.
 
-## 🗓️ Development Timeline
+**4. Projected Economics (At Scale):**
+*Hypothetical scenario with 10,000 active contributors and 50 enterprise buyers.*
 
-### Phase 1: Foundation (Weeks 1-2)
-- Set up microservices architecture
-- Implement authentication system
-- Design ML quality engine
-
-### Phase 2: Core Features (Weeks 3-4)
-- Advanced consent management
-- Real payment integration
-- Blockchain audit trail MVP
-
-### Phase 3: Scale & Polish (Weeks 5-6)
-- Performance optimization
-- Mobile app beta
-- Security hardening
-
-### Phase 4: Launch Prep (Week 7)
-- Load testing
-- User acceptance testing
-- Documentation finalization
-
----
-
-## 💰 Business Model Evolution
-
-**Round 1:** Platform fee concept  
-**Round 2:** Sustainable revenue model
-
-**Revenue Streams:**
-1. **Transaction fees:** 10% on license purchases
-2. **Premium subscriptions:** Advanced features for power contributors
-3. **Enterprise plans:** Custom SLAs, dedicated support for companies
-4. **API access:** Tiered pricing for developers
-
-**Cost Structure:**
-- Infrastructure (AWS/Vercel): ~30%
-- Payment processing: ~3%
-- Team salaries: ~50%
-- Marketing & sales: ~10%
-- R&D: ~7%
-
-**Break-even:** 500 monthly transactions at $500 avg license value
+- **Monthly Transaction Volume:** $250,000
+  - (Based on ~125 dataset licenses sold at $2,000 avg price)
+- **Net Revenue (10%):** $25,000 / month
+- **Contributor Payouts (90%):** $225,000 / month
+  - *Top 10% Contributors:* Earn ~$500/month
+  - *Average Contributor:* Earns ~$20/month
+- **Infrastructure Cost:** < $1,000/month (Serverless efficiency)
 
 ---
 
@@ -391,32 +275,15 @@ Microservices architecture with event-driven communication
 
 ---
 
-## 🎓 Lessons from Round 1
 
-**What Worked:**
-- Clear value proposition resonated with users
-- Visual design impressed judges
-- Technical architecture was sound
-
-**What to Improve:**
-- Add real authentication (prototype auth limits trust)
-- Show actual transactions (simulated payments feel fake)
-- Provide more data diversity (need > 3 sample datasets)
-
-**Feedback Incorporated:**
-- Judges wanted blockchain integration → Added to roadmap
-- Users requested mobile access → Building native apps
-- Companies needed API access → Creating developer platform
-
----
 
 ## 🌍 Long-Term Vision (Beyond Round 2)
 
-- **Global expansion:** Multi-language, multi-currency
-- **Industry verticals:** Healthcare data, financial data, creative content
-- **Decentralized governance:** Contributor DAO for platform decisions
-- **Interoperability:** Data portability across platforms
-- **AI model marketplace:** Link data directly to model training services
+- **Mobile Ecosystem:** Native iOS/Android apps for real-time data capture.
+- **Federated Learning:** Train AI models on user devices to preserve absolute privacy.
+- **Community Ownership:** Transition platform governance to a user-owned cooperative.
+- **Vertical Expansion:** Specialized marketplaces for Healthcare, Finance, and Creative Arts.
+- **Universal API:** Become the standard "Data Layer" for the entire AI industry.
 
 ---
 
@@ -424,7 +291,7 @@ Microservices architecture with event-driven communication
 
 - EU AI Act requirements for training data transparency
 - GDPR Article 22 (automated decision-making)
-- Ocean Protocol (data tokenization model)
+
 - Streamr (real-time data marketplace)
 - Solid Project (decentralized data ownership)
 
@@ -432,11 +299,11 @@ Microservices architecture with event-driven communication
 
 ## 🙋 Questions This Roadmap Answers
 
-- **What's new in Round 2?** Advanced features, payments, blockchain, mobile
-- **How will it scale?** Microservices, caching, multi-region deployment
-- **Is this production-ready?** Yes, with Round 2 features implemented
-- **What's the business model?** Transaction fees + subscriptions
-- **When will it launch?** 7-week timeline post-hackathon
+- **What's new in Round 2?** Real Auth, ML Quality Scoring, Economic Simulation.
+- **How will it scale?** Serverless architecture (Next.js + Supabase).
+- **Is this production-ready?** It's a functional Alpha ready for real users.
+- **What's the business model?** 10% Platform Fee (Lean Model).
+- **When will it launch?** 1-week sprint for Round 2 completion.
 
 ---
 
@@ -444,7 +311,7 @@ Microservices architecture with event-driven communication
 
 **We're not just building a platform. We're building a movement.**
 
-*From hackathon prototype to production powerhouse.*
+
 
 [Back to Main README](../README.md) | [Architecture Docs](ARCHITECTURE.md) | [Research](RESEARCH.md)
 

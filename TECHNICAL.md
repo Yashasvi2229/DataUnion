@@ -117,23 +117,20 @@ DataUnion follows a modern web architecture with Next.js as the application laye
 
 ### Bottlenecks & Solutions
 
-#### Potential Bottleneck #1: Database Connections
-**Solution:** 
-- Connection pooling with PgBouncer
-- Read replicas for analytics queries
-- Partitioning for large tables
-
-#### Potential Bottleneck #2: AI Quality Engine
+#### 1. Serverless Cold Starts
 **Solution:**
-- Async job queue (BullMQ + Redis)
-- Quality scoring doesn't block submission
-- Background processing
+- Vercel Edge Network for low-latency routing.
+- Lightweight runtime (Edge Functions) to minimize boot time.
 
-#### Potential Bottleneck #3: Payment Processing
+#### 2. AI Processing Latency
 **Solution:**
-- Rate limiting on license purchases
-- Queued payout distribution
-- Cached payment gateway responses
+- **Optimistic UI:** Show "Processing" state immediately.
+- **Client-Side Validation:** Pre-check data before upload to reduce server load.
+
+#### 3. Database Connection Limits
+**Solution:**
+- **Supavisor:** Supabase's built-in connection pooler manages spikes.
+- **Efficient Queries:** Indexing on `contributor_id` and `dataset_id`.
 
 ---
 
