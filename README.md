@@ -16,7 +16,6 @@ Where contributors own their data • Companies get quality datasets • Everyon
 </p>
 
 <p align="center">
-  <a href="https://data-union-three.vercel.app/">🚀 Live Demo</a> •
   <a href="TECHNICAL.md">📐 Architecture</a> •
   <a href="RESEARCH.md">📊 Research</a> •
   <a href="ROADMAP.md">🔮 Roadmap</a>
@@ -26,6 +25,14 @@ Where contributors own their data • Companies get quality datasets • Everyon
 </div>
 
 ---
+
+<br>
+
+<div align="center">
+
+### 🚀 [**Click Here to Try the Live Prototype**](https://data-union-three.vercel.app/)
+
+</div>
 
 <br>
 
@@ -334,31 +341,6 @@ npm run dev
 # ✅ Open http://localhost:3000
 ```
 
-</div>
-
-<br>
-
-## 📸 Screenshots & Demo
-
-<div align="center">
-
-### 🌟 Landing Page
-*Premium glassmorphism design with interactive vortex animation*
-
-### 📊 Contributor Dashboard
-*Track contributions, earnings, and consent settings in real-time*
-
-### 🏪 Company Marketplace
-*Browse quality-verified datasets with transparent licensing*
-
-### 🔍 Transparency Walkthrough
-*Interactive demo showing complete data flow from upload to payout*
-
-</div>
-
-> 💡 **Want to see it in action?** Run `npm run dev` and explore the interactive walkthrough!
-
-<br>
 
 ## 📚 Complete Documentation
 
