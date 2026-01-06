@@ -145,7 +145,7 @@ export default function ContributeData() {
             let quality = 0;
             let qualityBreakdown = null;
 
-            if (type === 'text' && !isDemo) {
+            if (type === 'text') {
                 // TEMPORARY: Worker-based analysis disabled due to transformers.js compatibility issue
                 // Using enhanced heuristic analysis with detailed breakdown
                 console.log('Using enhanced heuristic analysis...');
@@ -210,7 +210,7 @@ export default function ContributeData() {
                 };
 
                 console.log('Enhanced analysis complete:', { quality, qualityBreakdown });
-            } else if (type === 'sensor' && !isDemo) {
+            } else if (type === 'sensor') {
                 // Enhanced Sensor Data Quality Analysis
                 console.log('Analyzing sensor data quality with enhanced detection...');
 
@@ -243,52 +243,78 @@ export default function ContributeData() {
 
                     // Analyze first reading for structure
                     const firstReading = readings[0];
-                    const fields = Object.keys(firstReading);
-                    const values = Object.values(firstReading);
+
+                    // Recursive function to flatten nested objects
+                    const flattenObject = (obj: any, prefix = ''): Record<string, any> => {
+                        return Object.keys(obj).reduce((acc: any, k) => {
+                            const pre = prefix.length ? prefix + '.' : '';
+                            if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+                                Object.assign(acc, flattenObject(obj[k], pre + k));
+                            } else {
+                                acc[pre + k] = obj[k];
+                            }
+                            return acc;
+                        }, {});
+                    };
+
+                    const flatReading = flattenObject(firstReading);
+                    const fields = Object.keys(flatReading);
+                    const values = Object.values(flatReading);
+
+                    // Helper to find value by fuzzy key match
+                    const getValue = (keywords: string[]) => {
+                        const key = fields.find(f => {
+                            const lower = f.toLowerCase();
+                            return keywords.some(k => lower === k || lower.endsWith('.' + k) || lower.includes(k));
+                        });
+                        return key ? flatReading[key] : undefined;
+                    };
 
                     // 1. DYNAMIC SENSOR TYPE DETECTION
                     let sensorType = 'unknown';
                     let detectedFields: string[] = [];
 
+                    const checkType = (keywords: string[]) => fields.some(f => keywords.some(k => f.toLowerCase().includes(k)));
+
                     // Location sensors
-                    if (fields.some(f => ['latitude', 'longitude', 'lat', 'lon', 'gps'].includes(f.toLowerCase()))) {
+                    if (checkType(['latitude', 'longitude', 'lat', 'lon', 'gps'])) {
                         sensorType = 'location';
-                        detectedFields = fields.filter(f => ['latitude', 'longitude', 'lat', 'lon', 'altitude', 'speed', 'heading', 'accuracy'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['latitude', 'longitude', 'lat', 'lon', 'altitude', 'speed', 'heading', 'accuracy'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Environmental sensors
-                    else if (fields.some(f => ['temperature', 'humidity', 'pressure', 'temp'].includes(f.toLowerCase()))) {
+                    else if (checkType(['temperature', 'humidity', 'pressure', 'temp', 'airquality', 'co2'])) {
                         sensorType = 'environmental';
-                        detectedFields = fields.filter(f => ['temperature', 'humidity', 'pressure', 'airquality', 'co2', 'temp'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['temperature', 'humidity', 'pressure', 'airquality', 'co2', 'temp'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Motion/Accelerometer
-                    else if (fields.some(f => ['accelerometer', 'gyroscope', 'acceleration', 'x', 'y', 'z'].includes(f.toLowerCase()))) {
+                    else if (checkType(['accelerometer', 'gyroscope', 'acceleration', 'accel', 'gyro'])) {
                         sensorType = 'motion';
-                        detectedFields = fields.filter(f => ['x', 'y', 'z', 'acceleration', 'gyroscope', 'magnetometer'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['x', 'y', 'z', 'acceleration', 'gyroscope', 'magnetometer'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Health/Biometric
-                    else if (fields.some(f => ['heartrate', 'steps', 'calories', 'bpm', 'spo2'].includes(f.toLowerCase()))) {
+                    else if (checkType(['heartrate', 'steps', 'calories', 'bpm', 'spo2', 'bloodpressure'])) {
                         sensorType = 'health';
-                        detectedFields = fields.filter(f => ['heartrate', 'steps', 'calories', 'bpm', 'spo2', 'bloodpressure'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['heartrate', 'steps', 'calories', 'bpm', 'spo2', 'bloodpressure'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Light sensors
-                    else if (fields.some(f => ['light', 'lux', 'brightness', 'illuminance'].includes(f.toLowerCase()))) {
+                    else if (checkType(['light', 'lux', 'brightness', 'illuminance'])) {
                         sensorType = 'light';
-                        detectedFields = fields.filter(f => ['light', 'lux', 'brightness', 'illuminance', 'uv'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['light', 'lux', 'brightness', 'illuminance', 'uv'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Sound sensors
-                    else if (fields.some(f => ['sound', 'noise', 'decibel', 'db', 'audio'].includes(f.toLowerCase()))) {
+                    else if (checkType(['sound', 'noise', 'decibel', 'db', 'audio'])) {
                         sensorType = 'sound';
-                        detectedFields = fields.filter(f => ['sound', 'noise', 'decibel', 'db', 'frequency'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['sound', 'noise', 'decibel', 'db', 'frequency'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Proximity/Distance
-                    else if (fields.some(f => ['distance', 'proximity', 'range'].includes(f.toLowerCase()))) {
+                    else if (checkType(['distance', 'proximity', 'range'])) {
                         sensorType = 'proximity';
-                        detectedFields = fields.filter(f => ['distance', 'proximity', 'range'].includes(f.toLowerCase()));
+                        detectedFields = fields.filter(f => ['distance', 'proximity', 'range'].some(k => f.toLowerCase().includes(k)));
                     }
                     // Generic IoT device
                     else {
                         sensorType = 'iot';
-                        detectedFields = fields.filter(f => typeof firstReading[f] === 'number');
+                        detectedFields = fields.filter(f => typeof flatReading[f] === 'number');
                     }
 
                     // 2. SCHEMA QUALITY CHECK (40%)
@@ -297,7 +323,6 @@ export default function ContributeData() {
 
                     // Check for proper data types
                     const numericFields = values.filter(v => typeof v === 'number').length;
-                    const stringFields = values.filter(v => typeof v === 'string').length;
                     const nullFields = values.filter(v => v === null || v === undefined).length;
 
                     if (nullFields > 0) {
@@ -310,8 +335,9 @@ export default function ContributeData() {
                         warnings.push('⚠️ No numeric sensor readings found');
                     }
 
-                    // Check for nested objects (good for complex sensors)
-                    const hasNesting = values.some(v => typeof v === 'object' && v !== null);
+                    // Check for nested objects (good for complex sensors) - Original check was on values, but we flattened them.
+                    // We can check if any key contains a dot to imply nesting.
+                    const hasNesting = fields.some(f => f.includes('.'));
                     if (hasNesting && sensorType !== 'unknown') {
                         schemaScore = Math.min(schemaScore + 10, 100); // Bonus but cap at 100
                     }
@@ -324,67 +350,69 @@ export default function ContributeData() {
 
                     // Apply sensor-type-specific validation
                     if (sensorType === 'location') {
-                        const lat = firstReading.latitude || firstReading.lat;
-                        const lon = firstReading.longitude || firstReading.lon;
+                        const lat = getValue(['latitude', 'lat']);
+                        const lon = getValue(['longitude', 'lon']);
+                        const speed = getValue(['speed']);
 
-                        if (lat && (lat < -90 || lat > 90)) {
+                        if (typeof lat === 'number' && (lat < -90 || lat > 90)) {
                             validationScore -= 30;
                             warnings.push('⚠️ Invalid Latitude Range');
                         }
-                        if (lon && (lon < -180 || lon > 180)) {
+                        if (typeof lon === 'number' && (lon < -180 || lon > 180)) {
                             validationScore -= 30;
                             warnings.push('⚠️ Invalid Longitude Range');
                         }
-                        if (firstReading.speed && firstReading.speed < 0) {
+                        if (typeof speed === 'number' && speed < 0) {
                             validationScore -= 20;
                             warnings.push('⚠️ Negative Speed Value');
                         }
                     } else if (sensorType === 'environmental') {
-                        const temp = firstReading.temperature || firstReading.temp;
-                        const humidity = firstReading.humidity;
-                        const pressure = firstReading.pressure;
+                        const temp = getValue(['temperature', 'temp']);
+                        const humidity = getValue(['humidity']);
+                        const pressure = getValue(['pressure']);
 
-                        if (temp && (temp < -100 || temp > 100)) {
+                        if (typeof temp === 'number' && (temp < -100 || temp > 100)) {
                             validationScore -= 30;
                             warnings.push('⚠️ Temperature out of range (-100°C to 100°C)');
                         }
-                        if (humidity && (humidity < 0 || humidity > 100)) {
+                        if (typeof humidity === 'number' && (humidity < 0 || humidity > 100)) {
                             validationScore -= 30;
                             warnings.push('⚠️ Humidity must be 0-100%');
                         }
-                        if (pressure && (pressure < 800 || pressure > 1200)) {
+                        if (typeof pressure === 'number' && (pressure < 800 || pressure > 1200)) {
                             validationScore -= 20;
                             warnings.push('⚠️ Pressure out of typical range (800-1200 hPa)');
                         }
                     } else if (sensorType === 'health') {
-                        const hr = firstReading.heartRate || firstReading.heartrate || firstReading.bpm;
-                        const spo2 = firstReading.spo2 || firstReading.SpO2;
+                        const hr = getValue(['heartrate', 'heart_rate', 'bpm']);
+                        const spo2 = getValue(['spo2', 'oxygen']);
 
-                        if (hr && (hr < 30 || hr > 220)) {
+                        if (typeof hr === 'number' && (hr < 30 || hr > 220)) {
                             validationScore -= 30;
                             warnings.push('⚠️ Heart rate out of range (30-220 bpm)');
                         }
-                        if (spo2 && (spo2 < 0 || spo2 > 100)) {
+                        if (typeof spo2 === 'number' && (spo2 < 0 || spo2 > 100)) {
                             validationScore -= 30;
                             warnings.push('⚠️ SpO2 must be 0-100%');
                         }
                     } else if (sensorType === 'motion') {
                         // Check if acceleration values are reasonable (-20g to +20g)
                         ['x', 'y', 'z'].forEach(axis => {
-                            if (firstReading[axis] && Math.abs(firstReading[axis]) > 20) {
+                            const val = getValue([axis, `accel_${axis}`, `acceleration_${axis}`]);
+                            if (typeof val === 'number' && Math.abs(val) > 20) {
                                 validationScore -= 15;
                                 warnings.push(`⚠️ ${axis.toUpperCase()}-axis value seems extreme`);
                             }
                         });
                     } else if (sensorType === 'light') {
-                        const lux = firstReading.lux || firstReading.light || firstReading.brightness;
-                        if (lux && lux < 0) {
+                        const lux = getValue(['light', 'lux', 'brightness', 'illuminance']);
+                        if (typeof lux === 'number' && lux < 0) {
                             validationScore -= 30;
                             warnings.push('⚠️ Light level cannot be negative');
                         }
                     } else if (sensorType === 'sound') {
-                        const db = firstReading.decibel || firstReading.db || firstReading.noise;
-                        if (db && (db < 0 || db > 140)) {
+                        const db = getValue(['sound', 'noise', 'decibel', 'db']);
+                        if (typeof db === 'number' && (db < 0 || db > 140)) {
                             validationScore -= 30;
                             warnings.push('⚠️ Sound level out of range (0-140 dB)');
                         }
@@ -404,7 +432,7 @@ export default function ContributeData() {
 
                     // Check for timestamp
                     const hasTimestamp = fields.some(f =>
-                        ['timestamp', 'time', 'datetime', 'date', 'ts'].includes(f.toLowerCase())
+                        ['timestamp', 'time', 'datetime', 'date', 'ts'].some(k => f.toLowerCase().includes(k))
                     );
 
                     if (hasTimestamp) {
@@ -412,27 +440,39 @@ export default function ContributeData() {
 
                         // Bonus: Check sampling consistency for arrays
                         if (isArray && readings.length > 1) {
-                            const timestamps = readings.map(r => {
-                                const tsField = fields.find(f =>
-                                    ['timestamp', 'time', 'datetime', 'ts'].includes(f.toLowerCase())
-                                );
-                                return tsField ? r[tsField] : null;
-                            }).filter(t => t !== null);
+                            // Find the timestamp key
+                            const timestampKey = fields.find(f =>
+                                ['timestamp', 'time', 'datetime', 'date', 'ts'].some(k => f.toLowerCase().includes(k))
+                            );
 
-                            if (timestamps.length > 1) {
-                                // Check if timestamps are sequential
-                                const intervals = [];
-                                for (let i = 1; i < timestamps.length; i++) {
-                                    intervals.push(Math.abs(timestamps[i] - timestamps[i - 1]));
+                            if (timestampKey) {
+                                // Extract timestamps from all readings (assuming consistent structure)
+                                // We need to access the nested property if it was nested
+                                const getNestedValue = (obj: any, path: string) => {
+                                    return path.split('.').reduce((o, i) => o ? o[i] : null, obj);
+                                };
+
+                                const timestamps = readings.map(r => getNestedValue(r, timestampKey)).filter(t => t !== null && t !== undefined);
+
+                                if (timestamps.length > 1) {
+                                    // Check if timestamps are sequential numbers (or convertable to numbers)
+                                    const numericTimestamps = timestamps.map(t => new Date(t).getTime()).filter(t => !isNaN(t));
+
+                                    if (numericTimestamps.length > 1) {
+                                        const intervals = [];
+                                        for (let i = 1; i < numericTimestamps.length; i++) {
+                                            intervals.push(Math.abs(numericTimestamps[i] - numericTimestamps[i - 1]));
+                                        }
+
+                                        // Calculate consistency (lower std dev = more consistent)
+                                        const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+                                        const variance = intervals.reduce((sum, val) => sum + Math.pow(val - avgInterval, 2), 0) / intervals.length;
+                                        const stdDev = Math.sqrt(variance);
+                                        const consistency = Math.max(0, 100 - (stdDev / avgInterval * 100));
+
+                                        temporalScore = 50 + (consistency / 2); // 50 base + up to 50 bonus
+                                    }
                                 }
-
-                                // Calculate consistency (lower std dev = more consistent)
-                                const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-                                const variance = intervals.reduce((sum, val) => sum + Math.pow(val - avgInterval, 2), 0) / intervals.length;
-                                const stdDev = Math.sqrt(variance);
-                                const consistency = Math.max(0, 100 - (stdDev / avgInterval * 100));
-
-                                temporalScore = 50 + (consistency / 2); // 50 base + up to 50 bonus
                             }
                         } else {
                             temporalScore = 100; // Single reading with timestamp is perfect
