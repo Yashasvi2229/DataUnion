@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
     calculateQualityScore,
     calculateContributionValue,
 } from '@/lib/mockContributionData';
+import { analyzeImageQuality } from '@/lib/imageQualityUtils';
 
 type Step = 'type-select' | 'demo-select' | 'custom-input' | 'review-terms' | 'confirmation';
 
@@ -32,7 +33,28 @@ export default function ContributeData() {
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [consentGiven, setConsentGiven] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loadingText, setLoadingText] = useState('Analyzing data structure...');
     const [contributionResult, setContributionResult] = useState<any>(null);
+
+    useEffect(() => {
+        if (!loading) return;
+
+        const messages = [
+            'Analyzing data structure...',
+            'Running semantic valuation...',
+            'Calculating quality score...',
+            'Verifying uniqueness...',
+            'Finalizing contribution...'
+        ];
+
+        let i = 0;
+        const interval = setInterval(() => {
+            i = (i + 1) % messages.length;
+            setLoadingText(messages[i]);
+        }, 800);
+
+        return () => clearInterval(interval);
+    }, [loading]);
 
     const handleDataTypeSelect = (type: 'text' | 'sensor' | 'image', selectedMode: 'demo' | 'custom') => {
         setDataType(type);
@@ -529,11 +551,31 @@ export default function ContributeData() {
                     // Fallback to simple calculation
                     quality = calculateQualityScore(type, sampleData);
                 }
+            } else if (type === 'image' && (uploadedFile || (isDemo && selectedSample))) {
+                // Real Image Analysis (works for both uploaded files and demo placeholders)
+                console.log('Analyzing image quality...');
+                try {
+                    const input = isDemo && selectedSample ? selectedSample.sample : uploadedFile!;
+                    const analysis = await analyzeImageQuality(input);
+                    quality = analysis.quality;
+
+                    qualityBreakdown = {
+                        domain: analysis.breakdown.resolution,
+                        coherence: analysis.breakdown.sharpness,
+                        entityDensity: analysis.breakdown.exposure,
+                        novelty: analysis.breakdown.colorDepth,
+                        tags: analysis.breakdown.tags,
+                        warnings: analysis.breakdown.warnings,
+                        dominantDomain: 'Medical Imaging', // Default for this context
+                    };
+                    console.log('Image analysis complete:', analysis);
+                } catch (error) {
+                    console.error('Image analysis failed:', error);
+                    quality = calculateQualityScore(type, sampleData);
+                }
             } else {
-                // Use simple calculation for demo or image data
-                quality = isDemo
-                    ? selectedSample?.estimatedValue ? 90 + Math.random() * 8 : calculateQualityScore(type, sampleData)
-                    : calculateQualityScore(type, sampleData);
+                // Use simple calculation for fallback
+                quality = calculateQualityScore(type, sampleData);
             }
 
             const value = isDemo
@@ -1105,26 +1147,18 @@ export default function ContributeData() {
                 {/* Processing State - Analyzing Quality */}
                 {loading && step === 'review-terms' && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
-                        <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-8 max-w-md">
-                            <div className="space-y-6">
-                                {/* Brain Scan Animation */}
-                                <div className="flex justify-center">
-                                    <div className="relative w-24 h-24">
-                                        {/* Outer ring */}
-                                        <div className="absolute inset-0 border-4 border-cyan-500/30 rounded-full animate-ping" />
-                                        {/* Middle ring */}
-                                        <div className="absolute inset-2 border-4 border-cyan-500/50 rounded-full animate-pulse" />
-                                        {/* Inner core */}
-                                        <div className="absolute inset-4 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full animate-pulse flex items-center justify-center">
-                                            <span className="text-white text-xl">🧠</span>
-                                        </div>
-                                    </div>
+                        <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4">
+                            <div className="flex flex-col items-center justify-center space-y-6">
+                                {/* Emerald Spinner */}
+                                <div className="relative w-16 h-16">
+                                    <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                                    <div className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
                                 </div>
 
                                 <div className="text-center">
-                                    <h3 className="text-lg font-semibold text-white mb-2">Analyzing Quality...</h3>
+                                    <h3 className="text-xl font-bold text-white mb-2">{loadingText}</h3>
                                     <p className="text-sm text-gray-400">
-                                        Running semantic valuation on your contribution
+                                        Please wait while we verify your contribution
                                     </p>
                                 </div>
                             </div>
@@ -1149,7 +1183,7 @@ export default function ContributeData() {
                         </div>
 
                         {/* Quality Analysis Card */}
-                        {contributionResult.qualityBreakdown && (contributionResult.dataType === 'text' || contributionResult.dataType === 'sensor') ? (
+                        {contributionResult.qualityBreakdown && (contributionResult.dataType === 'text' || contributionResult.dataType === 'sensor' || contributionResult.dataType === 'image') ? (
                             <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-8 mb-8 max-w-4xl mx-auto">
                                 {/* Overall Score */}
                                 <div className="text-center mb-8">
@@ -1204,10 +1238,10 @@ export default function ContributeData() {
                                 <div className="grid grid-cols-2 gap-4 mb-6">
                                     <div className="bg-black/30 rounded-lg p-4">
                                         <div className="text-sm font-semibold text-white mb-1">
-                                            {contributionResult.dataType === 'sensor' ? 'Schema Quality' : 'Domain Match'}
+                                            {contributionResult.dataType === 'sensor' ? 'Schema Quality' : contributionResult.dataType === 'image' ? 'Resolution & Detail' : 'Domain Match'}
                                         </div>
                                         <div className="text-sm text-gray-400 mb-2">
-                                            {contributionResult.dataType === 'sensor' ? 'Structure & Types' : contributionResult.qualityBreakdown.dominantDomain}
+                                            {contributionResult.dataType === 'sensor' ? 'Structure & Types' : contributionResult.dataType === 'image' ? 'Pixel Density' : contributionResult.qualityBreakdown.dominantDomain}
                                         </div>
                                         <div className="flex items-end gap-2 mb-2">
                                             <span className="text-2xl font-bold text-white">{contributionResult.qualityBreakdown.domain}</span>
@@ -1226,10 +1260,10 @@ export default function ContributeData() {
 
                                     <div className="bg-black/30 rounded-lg p-4">
                                         <div className="text-sm font-semibold text-white mb-1">
-                                            {contributionResult.dataType === 'sensor' ? 'Data Validation' : 'Logical Flow'}
+                                            {contributionResult.dataType === 'sensor' ? 'Data Validation' : contributionResult.dataType === 'image' ? 'Sharpness & Focus' : 'Logical Flow'}
                                         </div>
                                         <div className="text-sm text-gray-400 mb-2">
-                                            {contributionResult.dataType === 'sensor' ? 'Range Checks' : 'Coherence'}
+                                            {contributionResult.dataType === 'sensor' ? 'Range Checks' : contributionResult.dataType === 'image' ? 'Edge Definition' : 'Coherence'}
                                         </div>
                                         <div className="flex items-end gap-2 mb-2">
                                             <span className="text-2xl font-bold text-white">{contributionResult.qualityBreakdown.coherence}</span>
@@ -1248,10 +1282,10 @@ export default function ContributeData() {
 
                                     <div className="bg-black/30 rounded-lg p-4">
                                         <div className="text-sm font-semibold text-white mb-1">
-                                            {contributionResult.dataType === 'sensor' ? 'Data Precision' : 'Information Density'}
+                                            {contributionResult.dataType === 'sensor' ? 'Data Precision' : contributionResult.dataType === 'image' ? 'Exposure & Contrast' : 'Information Density'}
                                         </div>
                                         <div className="text-sm text-gray-400 mb-2">
-                                            {contributionResult.dataType === 'sensor' ? 'Decimal Values' : 'Entities'}
+                                            {contributionResult.dataType === 'sensor' ? 'Decimal Values' : contributionResult.dataType === 'image' ? 'Luminance Range' : 'Entities'}
                                         </div>
                                         <div className="flex items-end gap-2 mb-2">
                                             <span className="text-2xl font-bold text-white">{contributionResult.qualityBreakdown.entityDensity}</span>
@@ -1270,10 +1304,10 @@ export default function ContributeData() {
 
                                     <div className="bg-black/30 rounded-lg p-4">
                                         <div className="text-sm font-semibold text-white mb-1">
-                                            {contributionResult.dataType === 'sensor' ? 'Temporal/Sampling' : 'Novelty'}
+                                            {contributionResult.dataType === 'sensor' ? 'Temporal/Sampling' : contributionResult.dataType === 'image' ? 'Color Quality' : 'Novelty'}
                                         </div>
                                         <div className="text-sm text-gray-400 mb-2">
-                                            {contributionResult.dataType === 'sensor' ? 'Time Consistency' : 'Uniqueness'}
+                                            {contributionResult.dataType === 'sensor' ? 'Time Consistency' : contributionResult.dataType === 'image' ? 'Dynamic Range' : 'Uniqueness'}
                                         </div>
                                         <div className="flex items-end gap-2 mb-2">
                                             <span className="text-2xl font-bold text-white">{contributionResult.qualityBreakdown.novelty}</span>
@@ -1300,7 +1334,9 @@ export default function ContributeData() {
                                         <p className="text-sm text-gray-300 font-mono mb-2">
                                             {contributionResult.dataType === 'sensor'
                                                 ? '(Schema × 0.4) + (Validation × 0.3) + (Precision × 0.2) + (Temporal × 0.1)'
-                                                : '(Domain × 0.4) + (Flow × 0.4) + (Density × 0.2) • [Veto Applied]'
+                                                : contributionResult.dataType === 'image'
+                                                    ? '(Resolution × 0.3) + (Sharpness × 0.3) + (Exposure × 0.2) + (Color × 0.2)'
+                                                    : '(Domain × 0.4) + (Flow × 0.4) + (Density × 0.2) • [Veto Applied]'
                                             }
                                         </p>
 
