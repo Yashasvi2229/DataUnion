@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase';
 import { calculatePayoutPreview } from '@/lib/payoutUtils';
+import { CompositionVisualizer } from '@/components/dataset/CompositionVisualizer';
+import { calculateComposition, FileData, CompositionReport } from '@/lib/calculateComposition';
 
 export default function DatasetDetail() {
     const router = useRouter();
@@ -15,6 +17,7 @@ export default function DatasetDetail() {
 
     const [dataset, setDataset] = useState<any>(null);
     const [payoutPreview, setPayoutPreview] = useState<any>(null);
+    const [composition, setComposition] = useState<CompositionReport | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -47,6 +50,93 @@ export default function DatasetDetail() {
                     datasetData.price_per_license || 0
                 );
                 setPayoutPreview(preview);
+
+                // Fetch contributions for composition analysis
+                const { data: contributions, error: contributionsError } = await supabase
+                    .from('data_contributions')
+                    .select('contribution_id, quality_score, data_type, sample_data')
+                    .eq('dataset_id', datasetId);
+
+                console.log('🔍 Composition Debug:', {
+                    datasetId,
+                    contributionsCount: contributions?.length || 0,
+                    contributionsError,
+                    sampleContribution: contributions?.[0]
+                });
+
+                if (contributions && contributions.length > 0) {
+                    // Helper function to intelligently categorize contributions
+                    const categorizeContribution = (c: any): string => {
+                        const data = c.sample_data || '';
+                        const type = c.data_type || '';
+
+                        // For sensor data, parse JSON to determine sensor type
+                        if (type === 'sensor') {
+                            try {
+                                const parsed = JSON.parse(data);
+                                if (parsed.sensor_type) {
+                                    if (parsed.sensor_type === 'temperature') return 'Temperature';
+                                    if (parsed.sensor_type === 'energy') return 'Energy';
+                                    if (parsed.sensor_type === 'motion') return 'Motion';
+                                    if (parsed.sensor_type === 'unknown') return 'Faulty';
+                                }
+                                if (parsed.mode) {
+                                    if (parsed.mode === 'bus' || parsed.mode === 'metro') return 'Public Transit';
+                                    if (parsed.mode === 'car') return 'Private Vehicle';
+                                    if (parsed.mode === 'bicycle' || parsed.mode === 'walk') return 'Active Transport';
+                                    if (parsed.mode === 'unknown') return 'GPS Error';
+                                }
+                                return 'IoT';
+                            } catch (e) {
+                                return 'IoT';
+                            }
+                        }
+
+                        // For text data, categorize by content
+                        if (type === 'text') {
+                            if (data.includes('Product Review:')) return 'Product Reviews';
+                            if (data.includes('News Commentary:')) return 'News';
+                            if (data.includes('Customer Support:')) return 'Support';
+                            if (data.includes('Spam:')) return 'Spam';
+                            return 'Text';
+                        }
+
+                        // For image data, categorize by type
+                        if (type === 'image') {
+                            if (data.includes('xray')) return 'X-Ray';
+                            if (data.includes('mri')) return 'MRI';
+                            if (data.includes('ct')) return 'CT Scan';
+                            return 'Medical';
+                        }
+
+                        return 'Uncategorized';
+                    };
+
+                    // Transform contributions to FileData format
+                    const files: FileData[] = contributions.map(c => {
+                        // Estimate size based on sample_data length
+                        const sizeBytes = c.sample_data?.length || 1000;
+
+                        // Intelligently determine category
+                        const category = categorizeContribution(c);
+
+                        return {
+                            id: c.contribution_id,
+                            primaryTag: category,
+                            qualityScore: c.quality_score || 0,
+                            sizeBytes: sizeBytes
+                        };
+                    });
+
+                    console.log('📊 Files for composition:', files);
+
+                    // Calculate composition
+                    const report = calculateComposition(files);
+                    console.log('✅ Composition report:', report);
+                    setComposition(report);
+                } else {
+                    console.log('⚠️ No contributions found for composition analysis');
+                }
             }
         } catch (error) {
             console.error('Error fetching dataset:', error);
@@ -208,6 +298,21 @@ export default function DatasetDetail() {
                         </div>
                     </div>
                 </div>
+
+                {/* Dataset Composition Analysis */}
+                {composition && (
+                    <div className="mb-12">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold text-white">Dataset Composition</h2>
+                                <p className="text-white/50 text-sm mt-1">
+                                    Volume-weighted quality breakdown by category
+                                </p>
+                            </div>
+                        </div>
+                        <CompositionVisualizer composition={composition} />
+                    </div>
+                )}
 
                 {/* Usage Terms */}
                 <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-8 mb-8">

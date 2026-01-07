@@ -1,4 +1,4 @@
--- Seed file for DataUnion platform
+-- Enhanced Seed file for DataUnion platform with Composition Analytics Demo Data
 -- Run this in Supabase SQL Editor after schema.sql
 
 -- Clear existing data (optional, for clean slate)
@@ -10,7 +10,9 @@ INSERT INTO contributors (name, total_earnings, created_at) VALUES
 ('Bob Smith', 0, NOW() - INTERVAL '25 days'),
 ('Carol Davis', 0, NOW() - INTERVAL '20 days'),
 ('David Wilson', 0, NOW() - INTERVAL '15 days'),
-('Emma Brown', 0, NOW() - INTERVAL '10 days');
+('Emma Brown', 0, NOW() - INTERVAL '10 days'),
+('Frank Miller', 0, NOW() - INTERVAL '8 days'),
+('Grace Lee', 0, NOW() - INTERVAL '5 days');
 
 -- 2. Create platform-managed datasets
 INSERT INTO datasets (name, description, domain, data_type, total_contributions, contributor_count, quality_score, price_per_license, times_licensed, created_at) VALUES
@@ -19,8 +21,8 @@ INSERT INTO datasets (name, description, domain, data_type, total_contributions,
   'Real-time GPS and transportation data from city commuters',
   'Transportation',
   'sensor',
-  0,  -- Will be updated after contributions
-  0,  -- Will be updated after contributions
+  0,
+  0,
   92.5,
   5000,
   0,
@@ -59,12 +61,11 @@ INSERT INTO datasets (name, description, domain, data_type, total_contributions,
   0,
   90.1,
   4500,
-  0,
+  2,
   NOW() - INTERVAL '20 days'
 );
 
--- 3. Add sample data contributions (distributed across contributors and datasets)
--- This makes licensing payouts realistic by spreading contributions across multiple users
+-- 3. Add diverse data contributions with varied domains for beautiful composition analytics
 DO $$
 DECLARE
   contributor_ids UUID[];
@@ -82,88 +83,140 @@ BEGIN
   SELECT dataset_id INTO medical_imaging_id FROM datasets WHERE name = 'Medical Imaging Dataset';
   SELECT dataset_id INTO iot_smart_home_id FROM datasets WHERE name = 'IoT Smart Home Dataset';
 
-  -- Urban Mobility contributions (30 samples from 4 contributors)
-  FOR i IN 1..8 LOOP
-    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (urban_mobility_id, contributor_ids[1], 'sensor', '{"latitude": 12.9716, "longitude": 77.5946, "speed": ' || (40 + i * 5) || '}', 92 + (i % 5), 3.20, NOW() - INTERVAL '25 days' + (i || ' days')::INTERVAL);
-  END LOOP;
+  -- ============================================================
+  -- SOCIAL SENTIMENT DATASET - Diverse categories for beautiful composition
+  -- ============================================================
   
+  -- Category 1: Product Reviews (40% volume, high quality 90-95%)
+  FOR i IN 1..12 LOOP
+    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
+    (social_sentiment_id, contributor_ids[(i % 5) + 1], 'text', 
+     'Product Review: ' || REPEAT('This product exceeded my expectations with excellent build quality and features. ', 20) || ' Sample ' || i, 
+     90 + (i % 6), 2.80, NOW() - INTERVAL '22 days' + (i || ' days')::INTERVAL);
+  END LOOP;
+
+  -- Category 2: News Commentary (30% volume, medium quality 75-85%)
+  FOR i IN 1..10 LOOP
+    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
+    (social_sentiment_id, contributor_ids[(i % 5) + 1], 'text',
+     'News Commentary: ' || REPEAT('Breaking news about economic developments and policy changes affecting markets. ', 15) || ' Sample ' || i,
+     75 + (i % 11), 2.40, NOW() - INTERVAL '20 days' + (i || ' days')::INTERVAL);
+  END LOOP;
+
+  -- Category 3: Customer Support (20% volume, good quality 80-88%)
   FOR i IN 1..8 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (urban_mobility_id, contributor_ids[2], 'sensor', '{"latitude": 12.2958, "longitude": 76.6394, "speed": ' || (35 + i * 4) || '}', 88 + (i % 6), 3.00, NOW() - INTERVAL '23 days' + (i || ' days')::INTERVAL);
+    (social_sentiment_id, contributor_ids[(i % 5) + 1], 'text',
+     'Customer Support: ' || REPEAT('Thank you for contacting us. We have resolved your issue promptly. ', 12) || ' Sample ' || i,
+     80 + (i % 9), 2.50, NOW() - INTERVAL '18 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..7 LOOP
+  -- Category 4: Spam/Low Quality (10% volume, low quality 20-40%)
+  FOR i IN 1..4 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (urban_mobility_id, contributor_ids[3], 'sensor', '{"latitude": 13.0827, "longitude": 80.2707, "speed": ' || (42 + i * 3) || '}', 90 + (i % 4), 3.10, NOW() - INTERVAL '20 days' + (i || ' days')::INTERVAL);
+    (social_sentiment_id, contributor_ids[(i % 3) + 1], 'text',
+     'Spam: ' || REPEAT('Click here now!!! ', 5) || ' Sample ' || i,
+     20 + (i * 5), 0.50, NOW() - INTERVAL '15 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..7 LOOP
+  -- ============================================================
+  -- IOT SMART HOME DATASET - Multiple sensor categories
+  -- ============================================================
+  
+  -- Category 1: Temperature Sensors (50% volume, excellent quality 92-98%)
+  FOR i IN 1..15 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (urban_mobility_id, contributor_ids[4], 'sensor', '{"latitude": 19.0760, "longitude": 72.8777, "speed": ' || (38 + i * 6) || '}', 91 + (i % 5), 3.15, NOW() - INTERVAL '18 days' + (i || ' days')::INTERVAL);
+    (iot_smart_home_id, contributor_ids[(i % 5) + 1], 'sensor',
+     '{"sensor_type":"temperature","location":"living_room","value":' || (22 + i) || ',"timestamp":"2024-01-' || LPAD(i::text, 2, '0') || 'T10:00:00Z","accuracy":0.1,"battery":' || (85 + i) || '}',
+     92 + (i % 7), 2.00, NOW() - INTERVAL '19 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  -- Social Sentiment contributions (25 samples from 5 contributors)
+  -- Category 2: Energy Monitors (30% volume, high quality 88-94%)
+  FOR i IN 1..10 LOOP
+    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
+    (iot_smart_home_id, contributor_ids[(i % 5) + 1], 'sensor',
+     '{"sensor_type":"energy","device":"hvac","consumption":' || (2.0 + i * 0.3) || ',"cost":' || (0.15 * i) || ',"timestamp":"2024-01-' || LPAD(i::text, 2, '0') || 'T10:00:00Z"}',
+     88 + (i % 7), 1.90, NOW() - INTERVAL '17 days' + (i || ' days')::INTERVAL);
+  END LOOP;
+
+  -- Category 3: Motion Sensors (15% volume, good quality 80-87%)
   FOR i IN 1..5 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (social_sentiment_id, contributor_ids[1], 'text', 'Just had an amazing experience with the new metro line! Clean, fast, and affordable. Sample ' || i, 85 + (i * 2), 2.50, NOW() - INTERVAL '22 days' + (i || ' days')::INTERVAL);
+    (iot_smart_home_id, contributor_ids[(i % 4) + 1], 'sensor',
+     '{"sensor_type":"motion","location":"hallway","detected":' || (i % 2 = 0)::text || ',"timestamp":"2024-01-' || LPAD(i::text, 2, '0') || 'T10:00:00Z"}',
+     80 + (i % 8), 1.70, NOW() - INTERVAL '15 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..5 LOOP
+  -- Category 4: Faulty Sensors (5% volume, poor quality 30-45%)
+  FOR i IN 1..2 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (social_sentiment_id, contributor_ids[2], 'text', 'Traffic is really heavy on MG Road this morning. Bumper to bumper since 8 AM. Sample ' || i, 87 + (i * 2), 2.60, NOW() - INTERVAL '20 days' + (i || ' days')::INTERVAL);
+    (iot_smart_home_id, contributor_ids[1], 'sensor',
+     '{"sensor_type":"unknown","error":"timeout","value":null}',
+     30 + (i * 7), 0.30, NOW() - INTERVAL '13 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..5 LOOP
+  -- ============================================================
+  -- MEDICAL IMAGING DATASET - Different scan types
+  -- ============================================================
+  
+  -- Category 1: X-Ray Scans (45% volume, excellent quality 94-98%)
+  FOR i IN 1..12 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (social_sentiment_id, contributor_ids[3], 'text', 'Concerned about air quality today. AQI is showing 180+ in my area. Sample ' || i, 83 + (i * 2), 2.40, NOW() - INTERVAL '18 days' + (i || ' days')::INTERVAL);
+    (medical_imaging_id, contributor_ids[(i % 4) + 1], 'image',
+     'data:image/xray;base64,' || REPEAT('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 50) || i::text,
+     94 + (i % 5), 9.50, NOW() - INTERVAL '24 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..5 LOOP
+  -- Category 2: MRI Scans (35% volume, excellent quality 95-99%)
+  FOR i IN 1..10 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (social_sentiment_id, contributor_ids[4], 'text', 'The new park in our neighborhood is wonderful. Great for morning walks. Sample ' || i, 89 + (i * 2), 2.70, NOW() - INTERVAL '16 days' + (i || ' days')::INTERVAL);
+    (medical_imaging_id, contributor_ids[(i % 3) + 2], 'image',
+     'data:image/mri;base64,' || REPEAT('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 60) || i::text,
+     95 + (i % 5), 10.00, NOW() - INTERVAL '22 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..5 LOOP
-    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (social_sentiment_id, contributor_ids[5], 'text', 'Online food delivery service was quick and efficient today. Impressed. Sample ' || i, 86 + (i * 2), 2.55, NOW() - INTERVAL '14 days' + (i || ' days')::INTERVAL);
-  END LOOP;
-
-  -- Medical Imaging contributions (20 samples from 3 contributors)
-  FOR i IN 1..7 LOOP
-    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (medical_imaging_id, contributor_ids[2], 'image', 'data:image/placeholder-chest-xray-' || i, 94 + (i % 4), 8.50, NOW() - INTERVAL '24 days' + (i || ' days')::INTERVAL);
-  END LOOP;
-
-  FOR i IN 1..7 LOOP
-    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (medical_imaging_id, contributor_ids[3], 'image', 'data:image/placeholder-mri-scan-' || i, 96 + (i % 3), 9.00, NOW() - INTERVAL '22 days' + (i || ' days')::INTERVAL);
-  END LOOP;
-
+  -- Category 3: CT Scans (20% volume, high quality 92-96%)
   FOR i IN 1..6 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (medical_imaging_id, contributor_ids[4], 'image', 'data:image/placeholder-ct-scan-' || i, 95 + (i % 3), 8.80, NOW() - INTERVAL '20 days' + (i || ' days')::INTERVAL);
+    (medical_imaging_id, contributor_ids[(i % 3) + 3], 'image',
+     'data:image/ct;base64,' || REPEAT('UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=', 45) || i::text,
+     92 + (i % 5), 9.20, NOW() - INTERVAL '20 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  -- IoT Smart Home contributions (25 samples from 4 contributors)
-  FOR i IN 1..7 LOOP
+  -- ============================================================
+  -- URBAN MOBILITY DATASET - Different transportation modes
+  -- ============================================================
+  
+  -- Category 1: Public Transit (50% volume, high quality 88-94%)
+  FOR i IN 1..18 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (iot_smart_home_id, contributor_ids[1], 'sensor', '{"temperature": ' || (22 + i) || ', "humidity": ' || (60 + i * 2) || ', "energy": ' || (2.0 + i * 0.3) || '}', 89 + (i % 5), 1.80, NOW() - INTERVAL '19 days' + (i || ' days')::INTERVAL);
+    (urban_mobility_id, contributor_ids[(i % 5) + 1], 'sensor',
+     '{"mode":"bus","route":"' || (100 + i) || '","latitude":12.' || (9700 + i * 10) || ',"longitude":77.' || (5900 + i * 5) || ',"speed":' || (25 + i * 2) || ',"passengers":' || (15 + i) || ',"timestamp":"2024-01-' || LPAD(i::text, 2, '0') || 'T08:30:00Z"}',
+     88 + (i % 7), 3.40, NOW() - INTERVAL '25 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
+  -- Category 2: Private Vehicles (30% volume, good quality 85-91%)
+  FOR i IN 1..12 LOOP
+    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
+    (urban_mobility_id, contributor_ids[(i % 4) + 1], 'sensor',
+     '{"mode":"car","latitude":12.' || (9600 + i * 15) || ',"longitude":77.' || (5800 + i * 8) || ',"speed":' || (40 + i * 3) || ',"fuel_efficiency":' || (12 + i * 0.5) || ',"timestamp":"2024-01-' || LPAD(i::text, 2, '0') || 'T09:00:00Z"}',
+     85 + (i % 7), 3.20, NOW() - INTERVAL '23 days' + (i || ' days')::INTERVAL);
+  END LOOP;
+
+  -- Category 3: Bicycles/Pedestrians (15% volume, medium quality 75-83%)
   FOR i IN 1..6 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (iot_smart_home_id, contributor_ids[3], 'sensor', '{"temperature": ' || (24 + i) || ', "humidity": ' || (55 + i * 2) || ', "energy": ' || (1.8 + i * 0.4) || '}', 91 + (i % 4), 1.90, NOW() - INTERVAL '17 days' + (i || ' days')::INTERVAL);
+    (urban_mobility_id, contributor_ids[(i % 3) + 1], 'sensor',
+     '{"mode":"bicycle","latitude":12.' || (9650 + i * 12) || ',"longitude":77.' || (5850 + i * 6) || ',"speed":' || (12 + i) || ',"timestamp":"2024-01-' || LPAD(i::text, 2, '0') || 'T07:00:00Z"}',
+     75 + (i % 9), 2.80, NOW() - INTERVAL '20 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
-  FOR i IN 1..6 LOOP
+  -- Category 4: GPS Errors (5% volume, poor quality 25-40%)
+  FOR i IN 1..2 LOOP
     INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (iot_smart_home_id, contributor_ids[4], 'sensor', '{"temperature": ' || (23 + i) || ', "humidity": ' || (58 + i * 2) || ', "energy": ' || (2.2 + i * 0.2) || '}', 88 + (i % 6), 1.75, NOW() - INTERVAL '15 days' + (i || ' days')::INTERVAL);
-  END LOOP;
-
-  FOR i IN 1..6 LOOP
-    INSERT INTO data_contributions (dataset_id, contributor_id, data_type, sample_data, quality_score, contribution_value, created_at) VALUES
-    (iot_smart_home_id, contributor_ids[5], 'sensor', '{"temperature": ' || (25 + i) || ', "humidity": ' || (62 + i * 2) || ', "energy": ' || (1.9 + i * 0.3) || '}', 90 + (i % 5), 1.85, NOW() - INTERVAL '13 days' + (i || ' days')::INTERVAL);
+    (urban_mobility_id, contributor_ids[1], 'sensor',
+     '{"mode":"unknown","latitude":0.0,"longitude":0.0,"speed":-1,"error":"gps_signal_lost"}',
+     25 + (i * 7), 0.50, NOW() - INTERVAL '18 days' + (i || ' days')::INTERVAL);
   END LOOP;
 
   -- Update dataset stats
