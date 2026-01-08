@@ -12,7 +12,7 @@ import { SpendChart } from '@/components/dashboard/spend-chart';
 
 export default function CompanyDashboard() {
     const router = useRouter();
-    const { supabase, user } = useSupabase();
+    const { supabase, user, isLoading: authLoading } = useSupabase();
     const [companyName, setCompanyName] = useState('');
     const [licenses, setLicenses] = useState<any[]>([]);
     const [stats, setStats] = useState({
@@ -24,7 +24,14 @@ export default function CompanyDashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user) return;
+        // Wait for auth to finish loading
+        if (authLoading) return;
+
+        // If not authenticated, redirect to login
+        if (!user) {
+            router.push('/company/login');
+            return;
+        }
 
         fetchDashboardData();
 
@@ -35,7 +42,7 @@ export default function CompanyDashboard() {
 
         window.addEventListener('focus', handleFocus);
         return () => window.removeEventListener('focus', handleFocus);
-    }, [user, router]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [user, authLoading, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchDashboardData = async () => {
         try {

@@ -9,6 +9,7 @@ type SupabaseContext = {
     supabase: ReturnType<typeof createBrowserClient>
     session: Session | null
     user: User | null
+    isLoading: boolean
 }
 
 const Context = createContext<SupabaseContext | undefined>(undefined)
@@ -26,9 +27,17 @@ export default function SupabaseProvider({
     )
     const [session, setSession] = useState<Session | null>(null)
     const [user, setUser] = useState<User | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
 
     useEffect(() => {
+        // Get initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session)
+            setUser(session?.user ?? null)
+            setIsLoading(false)
+        })
+
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((event, session) => {
@@ -37,6 +46,7 @@ export default function SupabaseProvider({
             }
             setSession(session)
             setUser(session?.user ?? null)
+            setIsLoading(false)
         })
 
         return () => {
@@ -45,7 +55,7 @@ export default function SupabaseProvider({
     }, [router, supabase])
 
     return (
-        <Context.Provider value={{ supabase, session, user }}>
+        <Context.Provider value={{ supabase, session, user, isLoading }}>
             {children}
         </Context.Provider>
     )

@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { createClient } from '@/lib/supabase';
+import { useSupabase } from '@/components/providers/supabase-provider';
 import { ListItemSkeleton, PayoutItemSkeleton } from '@/components/ui/skeleton';
 
 type FilterType = 'all' | 'contributions' | 'datasets' | 'payouts' | 'audit';
 
 export default function TransparencyLog() {
     const router = useRouter();
+    const { supabase, user, isLoading: authLoading } = useSupabase();
     const [contributorName, setContributorName] = useState('');
     const [filter, setFilter] = useState<FilterType>('all');
     const [contributions, setContributions] = useState<any[]>([]);
@@ -20,28 +21,30 @@ export default function TransparencyLog() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const name = localStorage.getItem('contributor_name');
-        if (!name) {
+        // Wait for auth to finish loading
+        if (authLoading) return;
+
+        // If not authenticated, redirect to login
+        if (!user) {
             router.push('/contributor/login');
             return;
         }
 
-        setContributorName(name);
-        fetchTransparencyData(name);
-    }, [router]);
+        fetchTransparencyData();
+    }, [user, authLoading, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const fetchTransparencyData = async (name: string) => {
+    const fetchTransparencyData = async () => {
         try {
-            const supabase = createClient();
-
-            // Get contributor
+            // Get contributor by auth_user_id
             const { data: contributor } = await supabase
                 .from('contributors')
                 .select('*')
-                .eq('name', name)
+                .eq('auth_user_id', user!.id)
                 .maybeSingle();
 
             if (contributor) {
+                setContributorName(contributor.name || user!.user_metadata?.full_name || 'Contributor');
+
                 // Fetch individual contributions with deep nesting for audit trail
                 const { data: contributionsData } = await supabase
                     .from('data_contributions')
@@ -63,7 +66,7 @@ export default function TransparencyLog() {
 
                 // Get unique datasets this contributor is part of
                 if (contributionsData && contributionsData.length > 0) {
-                    const datasetIds = [...new Set(contributionsData.map(c => c.dataset_id))];
+                    const datasetIds = [...new Set(contributionsData.map((c: any) => c.dataset_id))];
 
                     const { data: datasetsData } = await supabase
                         .from('datasets')

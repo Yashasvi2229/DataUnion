@@ -13,7 +13,7 @@ import { ProfileSetupModal } from '@/components/dashboard/profile-setup-modal';
 
 export default function ContributorDashboard() {
     const router = useRouter();
-    const { supabase, user } = useSupabase();
+    const { supabase, user, isLoading: authLoading } = useSupabase();
     const [contributorName, setContributorName] = useState('');
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [stats, setStats] = useState({
@@ -25,7 +25,14 @@ export default function ContributorDashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user) return; // Middleware handles redirect normally, but just in case
+        // Wait for auth to finish loading
+        if (authLoading) return;
+
+        // If not authenticated, redirect to login
+        if (!user) {
+            router.push('/contributor/login');
+            return;
+        }
 
         // Fetch contributor data
         const fetchDashboardData = async () => {
@@ -107,7 +114,7 @@ export default function ContributorDashboard() {
         };
 
         fetchDashboardData();
-    }, [user, supabase, router]);
+    }, [user, authLoading, supabase, router]);
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
