@@ -68,7 +68,7 @@ export default function CompanyDashboard() {
                     .single();
 
                 if (createError) {
-                    console.error("Error creating company profile:", createError);
+                    console.error("Error creating company profile:", JSON.stringify(createError, null, 2));
                     router.push('/company/onboarding');
                     return;
                 } else {
@@ -77,7 +77,9 @@ export default function CompanyDashboard() {
             }
 
             if (company) {
-                setCompanyName(company.name || user!.user_metadata?.full_name || 'Company');
+                const resolvedName = company.name || user!.user_metadata?.full_name || 'Company';
+                setCompanyName(resolvedName);
+                localStorage.setItem('company_name', resolvedName);
 
                 // Fetch licenses
                 const { data: licensesData } = await supabase
